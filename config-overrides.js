@@ -1,4 +1,5 @@
-const { override, fixBabelImports } = require("customize-cra");
+const { override, fixBabelImports, addWebpackAlias } = require("customize-cra");
+const path = require("path");
 //自定义webpack配置
 const webpackConfig = () => (config) => {
   return config;
