@@ -20,5 +20,5 @@ export function getToken(tokenName: string = "member_token") {
  * 获取语言环境
  */
 export function getLanguage(languageName: string = "member_language") {
-  return localStorage.getItem(languageName) || "";
+  return localStorage.getItem(languageName) || "zh-CN";
 }

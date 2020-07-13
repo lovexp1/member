@@ -7,17 +7,20 @@ interface RequestListItem {
   url: string;
   cancel: any;
 }
+// console.log("Axios----------------", Axios.CancelToken);
+const cancelToken = Axios.CancelToken;
 //定义拦截器
 export class Interceptors {
   public instance: any;
   public source: any;
+  public cancelToken: any;
   public requestList: RequestListItem[];
   constructor() {
     //初始化axios实例
     this.instance = Axios.create({ timeout: 5000 });
     // 初始化axios取消令牌
-    const cancelToken = Axios.CancelToken;
-    this.source = cancelToken.source();
+    // this.cancelToken = Axios.CancelToken;
+    // this.source = this.cancelToken.source();
     //初始化正在请求的列表
     this.requestList = [];
     //初始化拦截器
@@ -41,44 +44,46 @@ export class Interceptors {
       (config: any) => {
         //判断当前请求是否需要token
         if (config.headers.isToken) {
-          const token: string = getToken("token");
-          const url: string = `${config.url}${JSON.stringify(config.data)}&${
-            config.method
-          }`;
+          const token: string | undefined = getToken();
           if (token) {
             config.headers.authenticator = getAuthenticator();
           }
-          this.stopRepeatRequest(
-            this.requestList,
-            url,
-            `${config.url} 请求被中断`
-          );
-          //发起请求前创建请求令牌
-          config.cancelToken = new Axios.CancelToken((cancel) => {
-            //只有当请求的地址、请求方法、请求参数一致时才认为是同一个请求，后面根据url去判断
-            this.requestList.push({
-              url: url,
-              cancel: cancel,
-            });
-          });
-          return config;
         }
+        const url: string = this.getUrl(config);
+        this.stopRepeatRequest(
+          this.requestList,
+          url,
+          `${config.url} 请求被中断`
+        );
+        //发起请求前创建请求令牌
+        new cancelToken((cancel: any) => {
+          // 只有当请求的地址、请求方法、请求参数一致时才认为是同一个请求，后面根据url去判断
+          this.requestList.push({
+            url: url,
+            cancel: cancel,
+          });
+        });
+        console.log(
+          "this.requestList----------------request",
+          this.requestList
+        );
+        return config;
       },
       (error: any) => {
-        console.error("请求参数错误");
+        console.error("请求参数错误", error);
       }
     );
     /**
      * 在此对后台数据处进行全局错误处理
      * 此处仅做错误判断，不对后台数据进行过滤
      */
-    this.instance.interceptors.use(
+    this.instance.interceptors.response.use(
       (res: any) => {
-        const url: string = `${res.config.url}${JSON.stringify(
-          res.config.data
-        )}&${res.config.method}`;
+        console.log("res----------------", res);
+        const url: string = this.getUrl(res.config);
         //请求成功后从请求列表中移除此请求
         this.allowRequest(this.requestList, url);
+        console.log("this.requestList----------------res", this.requestList);
         if (res.status === 200) {
           return Promise.resolve(res.data);
         } else {
@@ -87,16 +92,22 @@ export class Interceptors {
         }
       },
       (error: any) => {
+        console.log(
+          "Axios.isCancel(error)----------------",
+          Axios.isCancel(error)
+        );
         //判断当前请求是否被撤销了
         if (Axios.isCancel(error)) {
           console.error("取消了请求", error.message);
         } else {
           const { response } = error;
-          const url: string = `${error.config.url}${JSON.stringify(
-            error.config.data
-          )}&${error.config.method}`;
+          const url: string = this.getUrl(response.config);
           //请求成功后从请求列表中移除此请求
           this.allowRequest(this.requestList, url);
+          console.log(
+            "this.requestList----------------error",
+            this.requestList
+          );
           if (response) {
             // 请求已发出，但是不在2xx的范围
             this.errorHandle(response);
@@ -162,5 +173,14 @@ export class Interceptors {
         break;
       }
     }
+  }
+
+  /**
+   * 获取请求的url，用来标识唯一请求
+   * @param config
+   */
+  private getUrl(config: any) {
+    const data = config.method === "get" ? config.params : config.data;
+    return `${config.url}${JSON.stringify(data)}&${config.method}`;
   }
 }

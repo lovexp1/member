@@ -1,6 +1,8 @@
 import { Interceptors } from "./request";
 import qs from "querystring";
-
+import Axios from "axios";
+const CancelToken = Axios.CancelToken;
+const source = CancelToken.source();
 export class HttpConfig {
   public axios: any;
 
@@ -21,8 +23,9 @@ export class HttpConfig {
     return new Promise((resolve, reject) => {
       this.axios
         .get(url, {
-          params: qs.stringify(params as any),
-          headers: { istoken: true, ...headersConfig },
+          params: params,
+          headers: { isToken: true, ...headersConfig },
+          cancelToken: source.token,
         })
         .then((res: any) => {
           resolve(res);
@@ -42,9 +45,9 @@ export class HttpConfig {
   public post(url: string, params: object, headersConfig: object = {}) {
     return new Promise((resolve, reject) => {
       this.axios
-        .get(url, {
-          params: qs.stringify(params as any),
-          headers: { istoken: true, ...headersConfig },
+        .post(url, qs.stringify(params as any), {
+          headers: { isToken: true, ...headersConfig },
+          cancelToken: source.token,
         })
         .then((res: any) => {
           resolve(res);
@@ -85,10 +88,9 @@ export class HttpConfig {
     return res;
   }
 }
-let http: object | null = null;
-export const HttpServer = function () {
-  if (!http) {
-    http = new HttpConfig();
-  }
-  return http;
-};
+let http: any = null;
+if (!http) {
+  http = new HttpConfig();
+}
+
+export const HttpServer = http;
