@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-07-14 09:02:07
+ * @LastEditTime: 2020-07-14 10:21:46
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \member-register-react\src\utils\request\http.ts
+ */
 import { Interceptors } from "./request";
 import qs from "querystring";
 import Axios from "axios";
@@ -25,7 +33,7 @@ export class HttpConfig {
         .get(url, {
           params: params,
           headers: { isToken: true, ...headersConfig },
-          cancelToken: source.token,
+          // cancelToken: source.token,
         })
         .then((res: any) => {
           resolve(res);
@@ -47,7 +55,9 @@ export class HttpConfig {
       this.axios
         .post(url, qs.stringify(params as any), {
           headers: { isToken: true, ...headersConfig },
-          cancelToken: source.token,
+          // cancelToken: new CancelToken((cancel:any)=>{
+
+          // }),
         })
         .then((res: any) => {
           resolve(res);

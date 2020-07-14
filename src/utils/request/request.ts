@@ -17,7 +17,7 @@ export class Interceptors {
   public requestList: RequestListItem[];
   constructor() {
     //初始化axios实例
-    this.instance = Axios.create({ timeout: 5000 });
+    this.instance = Axios.create({ timeout: 50000 });
     // 初始化axios取消令牌
     // this.cancelToken = Axios.CancelToken;
     // this.source = this.cancelToken.source();
@@ -50,18 +50,15 @@ export class Interceptors {
           }
         }
         const url: string = this.getUrl(config);
-        this.stopRepeatRequest(
-          this.requestList,
-          url,
-          `${config.url} 请求被中断`
-        );
         //发起请求前创建请求令牌
-        new cancelToken((cancel: any) => {
+        config.cancelToken = new cancelToken((cancel: any) => {
           // 只有当请求的地址、请求方法、请求参数一致时才认为是同一个请求，后面根据url去判断
-          this.requestList.push({
-            url: url,
-            cancel: cancel,
-          });
+          this.stopRepeatRequest(
+            this.requestList,
+            url,
+            cancel,
+            `${config.url} 请求被中断`
+          );
         });
         console.log(
           "this.requestList----------------request",
@@ -92,10 +89,6 @@ export class Interceptors {
         }
       },
       (error: any) => {
-        console.log(
-          "Axios.isCancel(error)----------------",
-          Axios.isCancel(error)
-        );
         //判断当前请求是否被撤销了
         if (Axios.isCancel(error)) {
           console.error("取消了请求", error.message);
@@ -149,8 +142,10 @@ export class Interceptors {
   private stopRepeatRequest(
     requestList: RequestListItem[],
     url: string,
+    cancel: any,
     errorMsg: string = ""
   ) {
+
     //判断当前请求是否在正在请求的列表中，如果在则去撤销列表中的此请求
     for (let i = 0; i < requestList.length; i++) {
       if (requestList[i].url === url) {
@@ -159,6 +154,7 @@ export class Interceptors {
         break;
       }
     }
+    requestList.push({ url, cancel })
   }
 
   /**
