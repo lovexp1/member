@@ -3,8 +3,11 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import "@/app.scss";
 import RouterGuard from "@/routers/RouterGuard";
 import { Demo } from "./view/demo/index";
-import { A } from "./view/demo/a";
-import { B } from "./view/demo/b";
+import A from "./view/demo/a";
+import B from "./view/demo/b";
+import GetRouter from "@/routers/GetRouter";
+import routes from "@/routers/index";
+console.log("RouterGuard----------------", RouterGuard);
 function App() {
   return (
     <div>
@@ -12,8 +15,9 @@ function App() {
         <Demo></Demo>
         {/* <RouterGuard></RouterGuard> */}
         <Switch>
-          <Route path="/a" component={A}></Route>
-          <Route path="/b" component={B}></Route>
+          <GetRouter></GetRouter>
+          {/* <Route path="/a" component={A}></Route>
+          <Route path="/b" component={B}></Route> */}
         </Switch>
       </BrowserRouter>
     </div>

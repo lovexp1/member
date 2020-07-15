@@ -1,7 +1,6 @@
 import React from "react";
 import api from "@/api/member/index";
-console.log("----------------", api);
-export function A() {
+export default function A() {
   function clickA() {
     let params = {
       isAddDevNode: 1,
