@@ -1,36 +1,40 @@
-import Axios from "axios";
-import { getToken } from "../untils";
-import { getAuthenticator } from "./config";
-import { Toast } from "antd-mobile";
+import Axios from 'axios'
+import { getToken } from '../untils'
+import { getAuthenticator } from './config'
+import { Toast } from 'antd-mobile'
 //定义请求列表中每一项的接口
 interface RequestListItem {
-  url: string;
-  cancel: any;
+  url: string
+  cancel: any
 }
 // console.log("Axios----------------", Axios.CancelToken);
-const cancelToken = Axios.CancelToken;
+const cancelToken = Axios.CancelToken
 //定义拦截器
-export class Interceptors {
-  public instance: any;
-  public source: any;
-  public cancelToken: any;
-  public requestList: RequestListItem[];
+class Interceptors {
+  public instance: any
+  public source: any
+  public cancelToken: any
+  public requestList: RequestListItem[]
   constructor() {
     //初始化axios实例
-    this.instance = Axios.create({ timeout: 50000 });
+    this.instance = Axios.create({ timeout: 50000 })
     // 初始化axios取消令牌
     // this.cancelToken = Axios.CancelToken;
     // this.source = this.cancelToken.source();
     //初始化正在请求的列表
-    this.requestList = [];
+    this.requestList = []
     //初始化拦截器
-    this.initInterceptors();
+    this.initInterceptors()
   }
 
   //获取axios实例
   public getInterceptors() {
-    return this.instance;
+    return this.instance
   }
+  // //获取axios实例
+  // public getRequestList() {
+  //   return this.requestList
+  // }
 
   /**
    * 初始化拦截器
@@ -44,12 +48,12 @@ export class Interceptors {
       (config: any) => {
         //判断当前请求是否需要token
         if (config.headers.isToken) {
-          const token: string | undefined = getToken();
+          const token: string | undefined = getToken()
           if (token) {
-            config.headers.authenticator = getAuthenticator();
+            config.headers.authenticator = getAuthenticator()
           }
         }
-        const url: string = this.getUrl(config);
+        const url: string = this.getUrl(config)
         //发起请求前创建请求令牌
         config.cancelToken = new cancelToken((cancel: any) => {
           // 只有当请求的地址、请求方法、请求参数一致时才认为是同一个请求，后面根据url去判断
@@ -58,60 +62,54 @@ export class Interceptors {
             url,
             cancel,
             `${config.url} 请求被中断`
-          );
-        });
-        console.log(
-          "this.requestList----------------request",
-          this.requestList
-        );
-        return config;
+          )
+        })
+        console.log('this.requestList----------------request', this.requestList)
+        return config
       },
       (error: any) => {
-        console.error("请求参数错误", error);
+        console.error('请求参数错误', error)
       }
-    );
+    )
     /**
      * 在此对后台数据处进行全局错误处理
      * 此处仅做错误判断，不对后台数据进行过滤
      */
     this.instance.interceptors.response.use(
       (res: any) => {
-        console.log("res----------------", res);
-        const url: string = this.getUrl(res.config);
+        console.log('res----------------', res)
+        const url: string = this.getUrl(res.config)
         //请求成功后从请求列表中移除此请求
-        this.allowRequest(this.requestList, url);
-        console.log("this.requestList----------------res", this.requestList);
+        this.allowRequest(this.requestList, url)
+        console.log('this.requestList----------------res', this.requestList)
         if (res.status === 200) {
-          return Promise.resolve(res.data);
+          return Promise.resolve(res.data)
         } else {
-          this.errorHandle(res);
-          return Promise.reject(res.data);
+          this.errorHandle(res)
+          return Promise.reject(res.data)
         }
       },
       (error: any) => {
         //判断当前请求是否被撤销了
         if (Axios.isCancel(error)) {
-          console.error("取消了请求", error.message);
+          console.error('取消了请求', error.message)
         } else {
-          const { response } = error;
-          const url: string = this.getUrl(response.config);
+          const { response } = error
+          const url: string = this.getUrl(response.config)
           //请求成功后从请求列表中移除此请求
-          this.allowRequest(this.requestList, url);
-          console.log(
-            "this.requestList----------------error",
-            this.requestList
-          );
+          this.allowRequest(this.requestList, url)
+          console.log('this.requestList----------------error', this.requestList)
           if (response) {
             // 请求已发出，但是不在2xx的范围
-            this.errorHandle(response);
-            return Promise.reject(response.data);
+            this.errorHandle(response)
+            return Promise.reject(response.data)
           } else {
             // 处理断网的情况
-            Toast.fail("网络连接异常,请稍后再试!");
+            Toast.fail('网络连接异常,请稍后再试!')
           }
         }
       }
-    );
+    )
   }
 
   /**
@@ -122,14 +120,14 @@ export class Interceptors {
     // 状态码判断
     switch (res.status) {
       case 401:
-        break;
+        break
       case 403:
-        break;
+        break
       case 404:
-        Toast.fail("请求的资源不存在");
-        break;
+        Toast.fail('请求的资源不存在')
+        break
       default:
-        Toast.fail("连接错误");
+        Toast.fail('连接错误')
     }
   }
 
@@ -143,15 +141,14 @@ export class Interceptors {
     requestList: RequestListItem[],
     url: string,
     cancel: any,
-    errorMsg: string = ""
+    errorMsg: string = ''
   ) {
-
     //判断当前请求是否在正在请求的列表中，如果在则去撤销列表中的此请求
     for (let i = 0; i < requestList.length; i++) {
       if (requestList[i].url === url) {
-        requestList[i].cancel(errorMsg);
-        requestList.splice(i, 1);
-        break;
+        requestList[i].cancel(errorMsg)
+        requestList.splice(i, 1)
+        break
       }
     }
     requestList.push({ url, cancel })
@@ -165,8 +162,8 @@ export class Interceptors {
   private allowRequest(requestList: RequestListItem[], url: string) {
     for (let i = 0; i < requestList.length; i++) {
       if (requestList[i].url === url) {
-        requestList.splice(i, 1);
-        break;
+        requestList.splice(i, 1)
+        break
       }
     }
   }
@@ -176,7 +173,13 @@ export class Interceptors {
    * @param config
    */
   private getUrl(config: any) {
-    const data = config.method === "get" ? config.params : config.data;
-    return `${config.url}${JSON.stringify(data)}&${config.method}`;
+    const data = config.method === 'get' ? config.params : config.data
+    return `${config.url}${JSON.stringify(data)}&${config.method}`
   }
 }
+
+let interceptors: any = null
+if (!interceptors) {
+  interceptors = new Interceptors()
+}
+export default interceptors

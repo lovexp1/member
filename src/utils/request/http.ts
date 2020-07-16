@@ -1,23 +1,23 @@
 /*
  * @Author: your name
  * @Date: 2020-07-14 09:02:07
- * @LastEditTime: 2020-07-14 10:21:46
+ * @LastEditTime: 2020-07-16 13:06:44
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \member-register-react\src\utils\request\http.ts
  */
-import { Interceptors } from "./request";
-import qs from "querystring";
-import Axios from "axios";
-const CancelToken = Axios.CancelToken;
-const source = CancelToken.source();
+import interceptors from './request'
+import qs from 'querystring'
+import Axios from 'axios'
+const CancelToken = Axios.CancelToken
+const source = CancelToken.source()
 export class HttpConfig {
-  public axios: any;
+  public axios: any
 
   constructor() {
     //获取axios实例,采用单例模式
     if (!this.axios) {
-      this.axios = new Interceptors().getInterceptors();
+      this.axios = interceptors.getInterceptors()
     }
   }
 
@@ -36,12 +36,12 @@ export class HttpConfig {
           // cancelToken: source.token,
         })
         .then((res: any) => {
-          resolve(res);
+          resolve(res)
         })
         .catch((error: any) => {
-          reject(error);
-        });
-    });
+          reject(error)
+        })
+    })
   }
 
   /**
@@ -60,12 +60,12 @@ export class HttpConfig {
           // }),
         })
         .then((res: any) => {
-          resolve(res);
+          resolve(res)
         })
         .catch((error: any) => {
-          reject(error);
-        });
-    });
+          reject(error)
+        })
+    })
   }
 
   /**
@@ -76,11 +76,11 @@ export class HttpConfig {
    */
   public postJson(url: string, params: object, headersConfig: object = {}) {
     let config = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...headersConfig,
-    };
-    let res = this.post(url, params, config);
-    return res;
+    }
+    let res = this.post(url, params, config)
+    return res
   }
 
   /**
@@ -91,16 +91,16 @@ export class HttpConfig {
    */
   public postFile(url: string, params: object, headersConfig: object = {}) {
     let config = {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
       ...headersConfig,
-    };
-    let res = this.post(url, params, config);
-    return res;
+    }
+    let res = this.post(url, params, config)
+    return res
   }
 }
-let http: any = null;
+let http: any = null
 if (!http) {
-  http = new HttpConfig();
+  http = new HttpConfig()
 }
 
-export const HttpServer = http;
+export const HttpServer = http
