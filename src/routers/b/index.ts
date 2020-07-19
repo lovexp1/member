@@ -1,21 +1,21 @@
 /*
- * @Author: your name
+ * @Author: 薛鹏
  * @Date: 2020-07-15 22:27:09
- * @LastEditTime: 2020-07-15 23:04:09
+ * @LastEditTime: 2020-07-20 00:12:07
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
+ * @Description: 路由配置文件
  * @FilePath: \member-rejister\src\routers\b\index.ts
+ * 特别注意：所有的路由页面必须在page文件夹下，此处直接写page文件夹下的路径即可
  */
-import B from "@/view/demo/b";
-import B1 from "@/view/demo/b1";
+
 export default [
   {
     path: "/b",
-    component: B,
+    component: "/demo/b",
     children: [
       {
         path: "b1",
-        component: B1,
+        component: "/demo/b1",
       },
     ],
   },
